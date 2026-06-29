@@ -23,7 +23,12 @@ app.use(express.json());
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', message: 'Email server is running' });
+    res.json({ 
+        status: 'ok', 
+        message: 'Email server is running',
+        hasResendKey: !!process.env.RESEND_API_KEY,
+        nodeVersion: process.version
+    });
 });
 
 // Contact Form POST endpoint
