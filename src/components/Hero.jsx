@@ -112,7 +112,7 @@ const Hero = () => {
                                         education: <span className="string">"B.Tech CSE (AIML)"</span>,
                                     </div>
                                     <div className="code-line" style={{ paddingLeft: '1.25rem' }}>
-                                        specialties: [<span className="string">"Frontend"</span>, <span className="string">"ML"</span>],
+                                        specialties: [<span className="string">"Software Development"</span>,<span className="string">"Frontend"</span>,<span className="string">"Backend"</span>, <span className="string">"ML"</span>],
                                     </div>
                                     <div className="code-line" style={{ paddingLeft: '1.25rem' }}>
                                         coreStack: &#123;

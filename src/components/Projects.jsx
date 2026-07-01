@@ -74,6 +74,21 @@ const projectsData = [
         github: 'https://github.com/dedeepya04/expense-tracker',
         color: 'orange',
         icon: DollarSign
+    },
+    {
+        id: 'neuroscan',
+        title: 'NeuroScan AI',
+        category: 'ml',
+        tech: ['TensorFlow', 'Keras', 'Python', 'Streamlit', 'Scikit-Learn', 'Pillow'],
+        stats: { key: 'CNN Accuracy', value: '99.1% Test Acc' },
+        tagline: 'Deep learning classifier to detect Alzheimer disease stages from brain MRI scans',
+        bullets: [
+            'Trained a custom Convolutional Neural Network (CNN) in TensorFlow/Keras on 6,400 preprocessed brain MRI scans, achieving a peak classification accuracy of 99.1% on the test set.',
+            'Designed an interactive, dark-themed glassmorphic Streamlit web application with built-in image preprocessing (128x128 RGB conversion) and real-time inference prediction mapping.'
+        ],
+        github: 'https://github.com/dedeepya04/alzheimer_detection',
+        color: 'violet',
+        icon: Brain
     }
 ];
 
@@ -236,6 +251,7 @@ const Projects = () => {
                                         {project.id === 'sentiment' && <FlipkartSentimentSandbox accentColor={accentColor} />}
                                         {project.id === 'smarthealth' && <SmartHealthSandbox accentColor={accentColor} />}
                                         {project.id === 'budgetmate' && <BudgetMateSandbox accentColor={accentColor} />}
+                                        {project.id === 'neuroscan' && <NeuroScanSandbox accentColor={accentColor} />}
                                     </div>
                                     <div className="sandbox-footer">
                                         <button
@@ -984,6 +1000,355 @@ const BudgetMateSandbox = ({ accentColor }) => {
                     </div>
                 </div>
             </div>
+        </div>
+    );
+};
+
+/* ==========================================================================
+   SANDBOX SIMULATOR 4: NeuroScan AI
+   ========================================================================== */
+const NeuroScanSandbox = ({ accentColor }) => {
+    const [selectedScanIdx, setSelectedScanIdx] = useState(0);
+    const [customScanName, setCustomScanName] = useState('');
+    const [isRunning, setIsRunning] = useState(false);
+    const [logs, setLogs] = useState([]);
+    const [progress, setProgress] = useState(0);
+    const [result, setResult] = useState(null);
+
+    const presets = [
+        {
+            name: 'MRI Scan #01 (Non-Demented)',
+            file: 'mri_scan_healthy_01.png',
+            verdict: 'Non_Demented',
+            probabilities: [0.2, 0.1, 98.5, 1.2], // [Mild, Moderate, Non, Very_Mild]
+            description: 'Normal cerebral ventricles and cortical sulci size. No hippocampal atrophy detected. The brain structure is consistent with normal aging.'
+        },
+        {
+            name: 'MRI Scan #02 (Very Mild Demented)',
+            file: 'mri_scan_early_02.png',
+            verdict: 'Very_Mild_Demented',
+            probabilities: [5.1, 1.3, 15.4, 78.2],
+            description: 'Minimal widening of the temporal horn and minor thinning of the entorhinal cortex. Findings suggest very early-stage cognitive changes.'
+        },
+        {
+            name: 'MRI Scan #03 (Mild Demented)',
+            file: 'mri_scan_mild_03.png',
+            verdict: 'Mild_Demented',
+            probabilities: [85.3, 4.2, 2.1, 8.4],
+            description: 'Observable shrinkage of the hippocampal volume and moderate widening of cortical sulci, indicative of mild Alzheimer\'s dementia.'
+        },
+        {
+            name: 'MRI Scan #04 (Moderate Demented)',
+            file: 'mri_scan_severe_04.png',
+            verdict: 'Moderate_Demented',
+            probabilities: [5.4, 94.0, 0.1, 0.5],
+            description: 'Pronounced bilateral hippocampal volume loss with severe ventricular enlargement and severe cortical atrophy. Strongly diagnostic of moderate/advanced Alzheimer\'s stage.'
+        }
+    ];
+
+    const runInference = async () => {
+        setIsRunning(true);
+        setResult(null);
+        setProgress(0);
+        setLogs([]);
+
+        const scan = presets[selectedScanIdx >= 0 ? selectedScanIdx : 0];
+        const filename = customScanName || scan.file;
+        const probs = customScanName ? [4.1, 0.5, 92.2, 3.2] : scan.probabilities; // upload healthy by default
+
+        const classLabels = ['Mild_Demented', 'Moderate_Demented', 'Non_Demented', 'Very_Mild_Demented'];
+        const maxVal = Math.max(...probs);
+        const maxIdx = probs.indexOf(maxVal);
+        const predictedLabel = classLabels[maxIdx];
+
+        const simulatedLogs = [
+            `[1] INITIALIZING: Loading custom CNN model (model.h5) into memory...`,
+            `[2] SUCCESS: model.h5 successfully loaded. Weights compiled.`,
+            `[3] INPUT DETECTED: Brain MRI scan uploaded: ${filename}`,
+            `[4] PREPROCESSING: Converting image to RGB channel space...`,
+            `[5] RESIZING: Scaling dimensions to 128x128 pixels...`,
+            `[6] ARRAY CONVERSION: Casting matrix to float32 NumPy array...`,
+            `[7] BATCH EXPANSION: Reshaping input matrix to (1, 128, 128, 3)...`,
+            `[8] LAYER EXECUTION: Rescaling values [0, 255] to [0.0, 1.0] via model.rescaling_3...`,
+            `[9] MODEL PREDICT: Feeding tensor to Convolutional Neural Network...`,
+            `[10] MAPPING: Extracting prediction probabilities index matrix...`,
+            `[11] DIAGNOSIS: Diagnostic results compiled successfully. Confidence rate: ${maxVal.toFixed(1)}%`
+        ];
+
+        for (let i = 0; i < simulatedLogs.length; i++) {
+            await new Promise(resolve => setTimeout(resolve, 300));
+            setLogs(prev => [...prev, simulatedLogs[i]]);
+            setProgress(Math.round(((i + 1) / simulatedLogs.length) * 100));
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        setResult({
+            verdict: predictedLabel,
+            probabilities: probs,
+            description: customScanName
+                ? 'Analysis complete for custom uploaded image. Visual features indicate normal structural integrity with high confidence.'
+                : scan.description,
+            confidence: maxVal
+        });
+        setIsRunning(false);
+    };
+
+    const renderBrainSVG = (verdict) => {
+        let brainColor = 'rgba(139, 92, 246, 0.4)';
+        let scanRingColor = 'var(--accent-violet)';
+        if (verdict === 'Non_Demented') {
+            brainColor = 'rgba(34, 197, 94, 0.3)';
+            scanRingColor = '#22c55e';
+        } else if (verdict === 'Very_Mild_Demented') {
+            brainColor = 'rgba(234, 179, 8, 0.3)';
+            scanRingColor = '#eab308';
+        } else if (verdict === 'Mild_Demented') {
+            brainColor = 'rgba(249, 115, 22, 0.3)';
+            scanRingColor = '#f97316';
+        } else if (verdict === 'Moderate_Demented') {
+            brainColor = 'rgba(239, 68, 68, 0.3)';
+            scanRingColor = '#ef4444';
+        }
+
+        return (
+            <svg viewBox="0 0 200 200" className="mri-brain-svg" style={{ width: '100%', maxHeight: '180px' }}>
+                <defs>
+                    <radialGradient id="scanner-glow" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor={scanRingColor} stopOpacity="0.25" />
+                        <stop offset="100%" stopColor={scanRingColor} stopOpacity="0" />
+                    </radialGradient>
+                    <linearGradient id="scan-bar" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor={scanRingColor} stopOpacity="0.8" />
+                        <stop offset="100%" stopColor={scanRingColor} stopOpacity="0" />
+                    </linearGradient>
+                </defs>
+                <circle cx="100" cy="100" r="85" fill="url(#scanner-glow)" stroke={`${scanRingColor}30`} strokeWidth="1" strokeDasharray="4 4" />
+                <circle cx="100" cy="100" r="75" fill="none" stroke={`${scanRingColor}50`} strokeWidth="1.5" />
+
+                <path
+                    d="M100 45 C75 45, 60 55, 55 75 C52 85, 58 95, 55 105 C50 120, 60 145, 80 152 C90 156, 95 150, 100 150 C105 150, 110 156, 120 152 C140 145, 150 120, 145 105 C142 95, 148 85, 145 75 C140 55, 125 45, 100 45 Z"
+                    fill={brainColor}
+                    stroke={scanRingColor}
+                    strokeWidth="2.5"
+                    strokeLinejoin="round"
+                    className={isRunning ? 'mri-brain-animate' : ''}
+                />
+
+                <path
+                    d="M85 90 Q75 105, 85 120 M115 90 Q125 105, 115 120"
+                    fill="none"
+                    stroke={scanRingColor}
+                    strokeWidth="1.5"
+                    strokeDasharray="2 2"
+                />
+
+                <line x1="100" y1="20" x2="100" y2="180" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="1" />
+                <line x1="20" y1="100" x2="180" y2="100" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="1" />
+
+                {isRunning && (
+                    <rect x="23" y="25" width="154" height="15" fill="url(#scan-bar)" className="laser-bar-animate" />
+                )}
+            </svg>
+        );
+    };
+
+    return (
+        <div className="neuroscan-sandbox">
+            <p className="sandbox-desc">Select a preset patient brain MRI scan or simulate uploading one to run the TensorFlow custom CNN classification pipeline.</p>
+
+            <div className="sandbox-input-row" style={{ gap: '1rem' }}>
+                <div className="preset-selector" style={{ flex: '1.2' }}>
+                    <label className="sandbox-label">Select Patient MRI Preset:</label>
+                    <div className="preset-buttons" style={{ flexDirection: 'column', gap: '0.4rem' }}>
+                        {presets.map((p, idx) => (
+                            <button
+                                key={idx}
+                                className={`preset-btn ${selectedScanIdx === idx && !customScanName ? 'active' : ''}`}
+                                onClick={() => {
+                                    setSelectedScanIdx(idx);
+                                    setCustomScanName('');
+                                    setResult(null);
+                                }}
+                                disabled={isRunning}
+                                style={{ textAlign: 'left', width: '100%' }}
+                            >
+                                {p.name}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="custom-input-box" style={{ flex: '1.2' }}>
+                    <label className="sandbox-label">Or Simulate MRI Upload:</label>
+                    <div
+                        className="mock-dropzone"
+                        style={{
+                            height: '115px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            cursor: 'pointer',
+                            borderColor: customScanName ? accentColor : 'var(--border-color)',
+                            background: 'rgba(0,0,0,0.1)'
+                        }}
+                        onClick={() => {
+                            if (!isRunning) {
+                                const customName = `patient_mri_${Math.floor(1000 + Math.random() * 9000)}_upload.png`;
+                                setCustomScanName(customName);
+                                setSelectedScanIdx(-1);
+                                setResult(null);
+                            }
+                        }}
+                    >
+                        <Upload size={20} className="upload-icon" style={{ color: customScanName ? accentColor : 'var(--text-muted)', marginBottom: '0.5rem' }} />
+                        {customScanName ? (
+                            <div className="selected-file-details" style={{ textAlign: 'center', padding: '0 0.5rem' }}>
+                                <span className="file-name" style={{ color: accentColor, fontSize: '0.8rem', display: 'block', wordBreak: 'break-all' }}>{customScanName}</span>
+                                <span className="file-ready" style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Click to replace file</span>
+                            </div>
+                        ) : (
+                            <span className="dropzone-text" style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'center' }}>Click to upload custom scan</span>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            <button
+                className="btn btn-primary btn-sm run-btn"
+                onClick={runInference}
+                disabled={isRunning}
+                style={{
+                    background: accentColor,
+                    boxShadow: `0 0 15px ${accentColor}40`,
+                    width: '100%',
+                    justifyContent: 'center',
+                    marginBottom: '1.25rem',
+                    marginTop: '1rem'
+                }}
+            >
+                {isRunning ? (
+                    <>
+                        <RefreshCw size={14} className="animate-spin" />
+                        <span>Running Diagnostic Model ({progress}%)</span>
+                    </>
+                ) : (
+                    <>
+                        <PlayIcon size={10} />
+                        <span>Run CNN Model</span>
+                    </>
+                )}
+            </button>
+
+            {/* Visual Scan Center (Dynamic SVG) */}
+            <div className="mri-visual-panel glass-panel" style={{
+                padding: '1.5rem',
+                marginBottom: '1.25rem',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                background: 'rgba(0,0,0,0.3)',
+                border: `1px solid ${isRunning ? accentColor : 'var(--border-color)'}`
+            }}>
+                {renderBrainSVG(result ? result.verdict : (selectedScanIdx >= 0 ? presets[selectedScanIdx].verdict : 'Non_Demented'))}
+            </div>
+
+            {/* Simulated Terminal Screen */}
+            {(logs.length > 0 || isRunning) && (
+                <div className="terminal-box">
+                    <div className="terminal-header">
+                        <div className="terminal-dots">
+                            <span className="dot dot-red"></span>
+                            <span className="dot dot-yellow"></span>
+                            <span className="dot dot-green"></span>
+                        </div>
+                        <span>neuroscan_model_inference.py</span>
+                    </div>
+                    <div className="terminal-body scroll-to-bottom">
+                        {logs.map((log, index) => {
+                            let logColor = '#d4d4d8';
+                            if (log.includes('SUCCESS') || log.includes('successfully')) logColor = '#4ade80';
+                            if (log.includes('DIAGNOSIS') || log.includes('Confidence')) logColor = '#38bdf8';
+                            if (log.includes('PREPROCESSING') || log.includes('RESIZING')) logColor = '#fb923c';
+                            return (
+                                <div key={index} className="terminal-line" style={{ color: logColor }}>
+                                    <span className="terminal-prompt">&gt;</span> {log}
+                                </div>
+                            );
+                        })}
+                        {isRunning && (
+                            <div className="terminal-cursor-line">
+                                <span className="terminal-prompt">&gt;</span>
+                                <span className="terminal-cursor">_</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Results breakdown */}
+            {result && (
+                <div className="results-container glass-panel reveal-in" style={{ marginTop: '0', padding: '1.25rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        <h5 className="results-title" style={{ marginBottom: 0 }}>Model Diagnostic Report</h5>
+                        <span className={`status-badge-val verdict-${result.verdict}`} style={{
+                            padding: '0.25rem 0.75rem',
+                            borderRadius: '50px',
+                            fontSize: '0.72rem',
+                            fontWeight: '700',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
+                            background: result.verdict === 'Non_Demented' ? '#22c55e20' : result.verdict === 'Very_Mild_Demented' ? '#eab30820' : result.verdict === 'Mild_Demented' ? '#f9731620' : '#ef444420',
+                            color: result.verdict === 'Non_Demented' ? '#22c55e' : result.verdict === 'Very_Mild_Demented' ? '#eab308' : result.verdict === 'Mild_Demented' ? '#f97316' : '#ef4444',
+                            border: `1px solid ${result.verdict === 'Non_Demented' ? '#22c55e50' : result.verdict === 'Very_Mild_Demented' ? '#eab30850' : result.verdict === 'Mild_Demented' ? '#f9731650' : '#ef444450'}`
+                        }}>
+                            {result.verdict.replace('_', ' ')}
+                        </span>
+                    </div>
+
+                    <div className="bar-chart-vertical" style={{ gap: '0.6rem', marginBottom: '1.25rem' }}>
+                        {['Non_Demented', 'Very_Mild_Demented', 'Mild_Demented', 'Moderate_Demented'].map((label) => {
+                            const classLabels = ['Mild_Demented', 'Moderate_Demented', 'Non_Demented', 'Very_Mild_Demented'];
+                            const probabilityIdx = classLabels.indexOf(label);
+                            const probValue = result.probabilities[probabilityIdx];
+
+                            let fillColor = '#8b5cf6';
+                            if (label === 'Non_Demented') fillColor = '#22c55e';
+                            if (label === 'Very_Mild_Demented') fillColor = '#eab308';
+                            if (label === 'Mild_Demented') fillColor = '#f97316';
+                            if (label === 'Moderate_Demented') fillColor = '#ef4444';
+
+                            return (
+                                <div key={label} className="chart-bar-group" style={{ gap: '0.5rem' }}>
+                                    <div className="bar-label" style={{ width: '130px', fontSize: '0.72rem', textTransform: 'capitalize' }}>
+                                        {label.replace('_', ' ')}
+                                    </div>
+                                    <div className="bar-track" style={{ height: '14px' }}>
+                                        <div className="bar-fill" style={{
+                                            width: `${probValue}%`,
+                                            background: `linear-gradient(90deg, ${fillColor}40, ${fillColor})`,
+                                            paddingRight: '0.4rem'
+                                        }}>
+                                            <span className="percentage-text" style={{ fontSize: '0.65rem' }}>{probValue.toFixed(1)}%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    <div className="results-summary" style={{ fontSize: '0.82rem', padding: '0.75rem', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
+                        <strong>Diagnostic Summary:</strong>
+                        <p style={{ marginTop: '0.25rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>{result.description}</p>
+                    </div>
+
+                    <div className="disclaimer-box" style={{ marginTop: '1rem', fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', gap: '0.35rem', lineHeight: '1.3' }}>
+                        <span>⚠️</span>
+                        <span><em><strong>Disclaimer:</strong> This is a portfolio sandbox demonstration simulating model output. All calculations are mock and should not be used as clinical medical advice.</em></span>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
